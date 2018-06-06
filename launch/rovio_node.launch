@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?> 
 <launch>
-  <node pkg="rovio" type="rovio_node" name="rovio" output="screen">
+  <node pkg="tf" type="tf_remap" name="tf_remapper" output="screen">
+  <rosparam param="mappings">
+    [{old: /camera0, new: /mv_26806796}]
+  </rosparam>
+</node>
+
+
+  <node pkg="rovio" type="rovio_node" name="rovio" output="screen" >
   <param name="filter_config" value="$(find rovio)/cfg/rovio.info"/>
-  <param name="camera0_config" value="$(find rovio)/cfg/euroc_cam0.yaml"/>
-  <param name="camera1_config" value="$(find rovio)/cfg/euroc_cam1.yaml"/>
+  <param name="camera0_config" value="$(find rovio)/cfg/bluefox_xsens.yaml"/>
+  <remap from="tf" to="tf_old" />
   </node>
+  
+  
+  
+
+
+
 </launch>
