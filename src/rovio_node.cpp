@@ -1,5 +1,5 @@
-/*
-* Copyright (c) 2014, Autonomous Systems Lab
+
+/* Copyright (c) 2014, Autonomous Systems Lab
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without

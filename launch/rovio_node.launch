@@ -10,7 +10,9 @@
   <node pkg="rovio" type="rovio_node" name="rovio" output="screen" >
   <param name="filter_config" value="$(find rovio)/cfg/rovio.info"/>
   <param name="camera0_config" value="$(find rovio)/cfg/bluefox_xsens.yaml"/>
-  <!-- <remap from="tf" to="tf_old" />-->
+  <param name="world_frame" value="odom"/>
+  <param name="imu_frame" value="fcu_frd"/>  
+  <remap from="/rovio/pose_with_covariance_stamped" to="/mavros/vision_pose/pose_cov" />
   </node>
   
   

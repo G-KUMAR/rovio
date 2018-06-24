@@ -244,6 +244,8 @@ class RovioNode{
     transformMsg_.header.frame_id = world_frame_;
     transformMsg_.child_frame_id = imu_frame_;
 
+    estimatedPoseWithCovarianceStampedMsg_.header.frame_id =  "/pose";
+
     T_J_W_Msg_.child_frame_id = world_frame_;
     T_J_W_Msg_.header.frame_id = map_frame_;
 
