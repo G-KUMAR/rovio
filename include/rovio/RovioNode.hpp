@@ -655,13 +655,13 @@ class RovioNode{
       if(mpFilter_->safe_.t_ > oldSafeTime){ // Publish only if something changed
         for(int i=0;i<mtState::nCam_;i++){
           if(!mpFilter_->safe_.img_[i].empty() && mpImgUpdate_->doFrameVisualisation_){
-            cv::imshow("Tracker" + std::to_string(i), mpFilter_->safe_.img_[i]);
-            cv::waitKey(3);
+           // cv::imshow("Tracker" + std::to_string(i), mpFilter_->safe_.img_[i]);
+           // cv::waitKey(3);
           }
         }
         if(!mpFilter_->safe_.patchDrawing_.empty() && mpImgUpdate_->visualizePatches_){
-          cv::imshow("Patches", mpFilter_->safe_.patchDrawing_);
-          cv::waitKey(3);
+         // cv::imshow("Patches", mpFilter_->safe_.patchDrawing_);
+         // cv::waitKey(3);
         }
 
         // Obtain the save filter state.

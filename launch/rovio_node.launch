@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?> 
 <launch>
-  <!-- <node pkg="tf" type="tf_remap" name="tf_remapper" output="screen">
-  <rosparam param="mappings">
-    [{old: /camera0, new: /mv_26806796}]
-  </rosparam>
-</node> -->
-
-
+  <include file="$(find xsens_driver)/launch/xsens_driver.launch"/>
+	<include file="$(find bluefox2)/launch/single_node.launch"/>
+  
   <node pkg="rovio" type="rovio_node" name="rovio" output="screen" >
   <param name="filter_config" value="$(find rovio)/cfg/rovio.info"/>
   <param name="camera0_config" value="$(find rovio)/cfg/bluefox_xsens.yaml"/>
-  <param name="world_frame" value="odom"/>
-  <param name="imu_frame" value="fcu_frd"/>  
-  <remap from="/rovio/pose_with_covariance_stamped" to="/mavros/vision_pose/pose_cov" />
+  <param name="world_frame" value="world"/>
+  <param name="imu_frame" value="imu"/>
+  <remap from="/pose" to="/poses" />  
+ <!-- <remap from="/rovio/pose_with_covariance_stamped" to="/mavros/vision_pose/pose_cov" />-->
   </node>
   
   

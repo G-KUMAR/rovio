@@ -9,3 +9,4 @@ rosservice call /rovio/reset_to_pose "T_WM:
     z: 0.0
     w: 0.0007963"
 
+rosparam set /vin_mission_control/yaw_reset 1
