@@ -34,6 +34,7 @@
 #include <queue>
 
 #include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TransformStamped.h>
@@ -146,7 +147,7 @@ class RovioNode{
   ros::Publisher pubMarkers_;          /**<Publisher: Ros line marker, indicating the depth uncertainty of a landmark.*/
   ros::Publisher pubExtrinsics_[mtState::nCam_];
   ros::Publisher pubImuBias_;
-
+  image_transport::Publisher pub;
   // Ros Messages
   geometry_msgs::TransformStamped transformMsg_;
   geometry_msgs::TransformStamped T_J_W_Msg_;
@@ -182,6 +183,7 @@ class RovioNode{
   std::string world_frame_;
   std::string camera_frame_;
   std::string imu_frame_;
+  sensor_msgs::ImagePtr msg;
 
   /** \brief Constructor
    */
@@ -217,9 +219,11 @@ class RovioNode{
     srvResetToPoseFilter_ = nh_.advertiseService("rovio/reset_to_pose", &RovioNode::resetToPoseServiceCallback, this);
 
     // Advertise topics
+    image_transport::ImageTransport it(nh_);
+    pub = it.advertise("/rovio/features", 1000);
     pubTransform_ = nh_.advertise<geometry_msgs::TransformStamped>("rovio/transform", 1);
     pubOdometry_ = nh_.advertise<nav_msgs::Odometry>("rovio/odometry", 1);
-    pubPoseWithCovStamped_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("rovio/pose_with_covariance_stamped", 1);
+    pubPoseWithCovStamped_ = nh_.advertise<geometry_msgs::PoseStamped>("rovio/pose_with_covariance_stamped", 1);
     pubPcl_ = nh_.advertise<sensor_msgs::PointCloud2>("rovio/pcl", 1);
     pubPatch_ = nh_.advertise<sensor_msgs::PointCloud2>("rovio/patch", 1);
     pubMarkers_ = nh_.advertise<visualization_msgs::Marker>("rovio/markers", 1 );
@@ -244,7 +248,7 @@ class RovioNode{
     transformMsg_.header.frame_id = world_frame_;
     transformMsg_.child_frame_id = imu_frame_;
 
-    estimatedPoseWithCovarianceStampedMsg_.header.frame_id =  "/pose";
+    estimatedPoseWithCovarianceStampedMsg_.header.frame_id =  "imu";
 
     T_J_W_Msg_.child_frame_id = world_frame_;
     T_J_W_Msg_.header.frame_id = map_frame_;
@@ -655,12 +659,17 @@ class RovioNode{
       if(mpFilter_->safe_.t_ > oldSafeTime){ // Publish only if something changed
         for(int i=0;i<mtState::nCam_;i++){
           if(!mpFilter_->safe_.img_[i].empty() && mpImgUpdate_->doFrameVisualisation_){
-           // cv::imshow("Tracker" + std::to_string(i), mpFilter_->safe_.img_[i]);
+          //  cv::imshow("Tracker" + std::to_string(i), mpFilter_->safe_.img_[i]);
            // cv::waitKey(3);
+           sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", mpFilter_->safe_.img_[i]).toImageMsg();
+                                 pub.publish(msg);
           }
         }
         if(!mpFilter_->safe_.patchDrawing_.empty() && mpImgUpdate_->visualizePatches_){
          // cv::imshow("Patches", mpFilter_->safe_.patchDrawing_);
+           sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "rgb8", mpFilter_->safe_.patchDrawing_).toImageMsg();
+                                 pub.publish(msg);
+
          // cv::waitKey(3);
         }
 
@@ -773,15 +782,15 @@ class RovioNode{
           estimatedPoseWithCovarianceStampedMsg_.pose.pose.orientation.y = imuOutput_.qBW().y();
           estimatedPoseWithCovarianceStampedMsg_.pose.pose.orientation.z = imuOutput_.qBW().z();
 
-          for(unsigned int i=0;i<6;i++){
-            unsigned int ind1 = mtOutput::template getId<mtOutput::_pos>()+i;
-            if(i>=3) ind1 = mtOutput::template getId<mtOutput::_att>()+i-3;
-            for(unsigned int j=0;j<6;j++){
-              unsigned int ind2 = mtOutput::template getId<mtOutput::_pos>()+j;
-              if(j>=3) ind2 = mtOutput::template getId<mtOutput::_att>()+j-3;
-              estimatedPoseWithCovarianceStampedMsg_.pose.covariance[j+6*i] = imuOutputCov_(ind1,ind2);
-            }
-          }
+          // for(unsigned int i=0;i<6;i++){
+          //   unsigned int ind1 = mtOutput::template getId<mtOutput::_pos>()+i;
+          //   if(i>=3) ind1 = mtOutput::template getId<mtOutput::_att>()+i-3;
+          //   for(unsigned int j=0;j<6;j++){
+          //     unsigned int ind2 = mtOutput::template getId<mtOutput::_pos>()+j;
+          //     if(j>=3) ind2 = mtOutput::template getId<mtOutput::_att>()+j-3;
+          //     estimatedPoseWithCovarianceStampedMsg_.pose.covariance[j+6*i] = imuOutputCov_(ind1,ind2);
+          //   }
+          // }
 
           pubPoseWithCovStamped_.publish(estimatedPoseWithCovarianceStampedMsg_);
 
@@ -971,7 +980,7 @@ class RovioNode{
               }
             }
           }
-          pubPcl_.publish(pclMsg_);
+          // pubPcl_.publish(pclMsg_);
           pubMarkers_.publish(markerMsg_);
         }
         if(pubPatch_.getNumSubscribers() > 0 || forcePatchPublishing_){
